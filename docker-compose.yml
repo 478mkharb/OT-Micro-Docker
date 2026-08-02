@@ -1,0 +1,289 @@
+services:
+
+  scylla-init:
+    build:
+      context: ./scylla-init
+
+    container_name: scylla-init
+
+    depends_on:
+      scylladb:
+        condition: service_started
+
+    networks:
+      - otms-network
+
+    restart: "no"
+  
+  scylla-migration:
+    build:
+      context: .
+      dockerfile: scylla-migration/Dockerfile
+
+    container_name: scylla-migration
+
+    environment:
+      SCYLLA_HOST: scylladb
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylladb
+      SCYLLA_PASSWORD: password
+      SCYLLA_KEYSPACE: employee_db
+
+    depends_on:
+      scylla-init:
+        condition: service_completed_successfully
+
+    networks:
+      - otms-network
+
+    restart: "no"
+
+  attendance-migration:
+    build:
+      context: .
+      dockerfile: attendance-migration/Dockerfile
+
+    container_name: attendance-migration
+
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: attendance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: "no"
+
+  employee-api:
+    build:
+      context: ./Employee_API
+
+    container_name: employee-api
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      SCYLLA_HOST: scylladb
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylladb
+      SCYLLA_PASSWORD: password
+      SCYLLA_KEYSPACE: employee_db
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+      GIN_MODE: release
+
+    depends_on:
+      scylla-migration:
+        condition: service_completed_successfully
+
+      redis:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/v1/employee/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  salary-api:
+    build:
+      context: ./Salary_API
+
+    container_name: salary-api
+
+    ports:
+      - "8082:8082"
+
+    environment:
+      SCYLLA_HOST: scylladb
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylladb
+      SCYLLA_PASSWORD: password
+      SCYLLA_KEYSPACE: employee_db
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+
+      SPRING_PROFILES_ACTIVE: docker
+
+    depends_on:
+      scylla-migration:
+        condition: service_completed_successfully
+
+      redis:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  attendance-api:
+    build:
+      context: ./Attendance_API
+
+    container_name: attendance-api
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: attendance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+
+      SERVER_PORT: 8081
+
+    depends_on:
+      attendance-migration:
+        condition: service_completed_successfully
+
+      redis:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/attendance/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  notification-api:
+    build:
+      context: ./Notification
+
+    container_name: notification-api
+
+    ports:
+      - "8085:8085"
+
+    environment:
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8085
+
+      SMTP_FROM: jenkinsotms@gmail.com
+      SMTP_USERNAME: jenkinsotms@gmail.com
+      SMTP_PASSWORD: zvdftllukvincrgj
+      SMTP_SERVER: smtp.gmail.com
+      SMTP_PORT: 587
+
+      ELASTIC_HOST: elasticsearch
+      ELASTIC_PORT: 9200
+      ELASTIC_USERNAME: ""
+      ELASTIC_PASSWORD: ""
+      ELASTIC_INDEX: employee_index
+
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/api/v1/notification/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  scylla-sync:
+    build:
+      context: ./Scylla_Sync
+
+    container_name: scylla-sync
+
+    environment:
+      SCYLLA_HOST: scylladb
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylladb
+      SCYLLA_PASSWORD: password
+      SCYLLA_KEYSPACE: employee_db
+
+      ES_HOST: http://elasticsearch:9200
+      ES_INDEX: employee_index
+
+      NOTIFICATION_URL: http://notification-api:8085/api/v1/notification/send/all
+
+      SYNC_INTERVAL: 5
+
+    depends_on:
+      scylladb:
+        condition: service_started
+
+      elasticsearch:
+        condition: service_healthy
+
+      notification-api:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+
+    container_name: frontend
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      employee-api:
+        condition: service_healthy
+      salary-api:
+        condition: service_healthy
+      attendance-api:
+        condition: service_healthy
+      notification-api:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+networks:
+  otms-network:
+    external: true
