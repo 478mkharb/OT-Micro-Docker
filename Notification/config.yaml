@@ -1,0 +1,18 @@
+---
+server:
+  host: ${SERVER_HOST:0.0.0.0}
+  port: ${SERVER_PORT:8085}
+
+smtp:
+  from: ${SMTP_FROM}
+  username: ${SMTP_USERNAME}
+  password: ${SMTP_PASSWORD}
+  smtp_server: ${SMTP_SERVER:smtp.gmail.com}
+  smtp_port: ${SMTP_PORT:587}
+
+elasticsearch:
+  username: ${ELASTIC_USERNAME:}
+  password: ${ELASTIC_PASSWORD:}
+  host: ${ELASTIC_HOST:localhost}
+  port: ${ELASTIC_PORT:9200}
+  index: ${ELASTIC_INDEX:employee_index}

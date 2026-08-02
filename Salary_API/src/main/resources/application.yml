@@ -1,0 +1,54 @@
+spring:
+  cassandra:
+    keyspace-name: ${SCYLLA_KEYSPACE:employee_db}
+    contact-points: ${SCYLLA_HOST:localhost}
+    port: ${SCYLLA_PORT:9042}
+    local-datacenter: ${SCYLLA_DATACENTER:datacenter1}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+server:
+  port: ${SERVER_PORT:8082}
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include:
+          - health
+          - prometheus
+          - metrics
+
+  health:
+    cassandra:
+      enabled: true
+
+  endpoint:
+    health:
+      show-details: always
+
+    metrics:
+      enabled: true
+
+    prometheus:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+
+springdoc:
+  swagger-ui:
+    path: /salary-documentation
+    tryItOutEnabled: true
+    filter: true
+
+  api-docs:
+    path: /salary-api-docs
+
+  show-actuator: true
