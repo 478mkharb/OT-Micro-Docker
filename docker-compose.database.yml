@@ -12,7 +12,7 @@ volumes:
 services:
 
   scylladb:
-    image: scylladb/scylla:6.1
+    image: 478mkharb/otms-scylladb:latest
     container_name: scylladb
 
     command: --smp 1 --memory 1G --overprovisioned 1 --developer-mode 1
@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:16-alpine
+    image: 478mkharb/otms-postgres:latest
     container_name: postgres
 
     environment:
@@ -55,7 +55,7 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: 478mkharb/otms-redis:latest
     container_name: redis
 
     command: redis-server --appendonly yes
@@ -78,7 +78,7 @@ services:
       retries: 5
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.28
+    image: 478mkharb/otms-elasticsearch:latest
     container_name: elasticsearch
 
     environment:

@@ -1,7 +1,8 @@
 services:
 
   scylla-init:
-    image: 478mkharb/otms-scylla-init:latest
+    build:
+      context: ./scylla-init
 
     container_name: scylla-init
 
@@ -15,7 +16,9 @@ services:
     restart: "no"
   
   scylla-migration:
-    image: 478mkharb/otms-scylla-migration:latest
+    build:
+      context: .
+      dockerfile: scylla-migration/Dockerfile
 
     container_name: scylla-migration
 
@@ -36,7 +39,9 @@ services:
     restart: "no"
 
   attendance-migration:
-    image: 478mkharb/otms-attendance-migration:latest
+    build:
+      context: .
+      dockerfile: attendance-migration/Dockerfile
 
     container_name: attendance-migration
 
@@ -57,7 +62,8 @@ services:
     restart: "no"
 
   employee-api:
-    image: 478mkharb/otms-employee-api:latest
+    build:
+      context: ./Employee_API
 
     container_name: employee-api
 
@@ -97,7 +103,8 @@ services:
       start_period: 30s
 
   salary-api:
-    image: 478mkharb/otms-salary-api:latest
+    build:
+      context: ./Salary_API
 
     container_name: salary-api
 
@@ -137,7 +144,8 @@ services:
       start_period: 40s
 
   attendance-api:
-    image: 478mkharb/otms-attendance-api:latest
+    build:
+      context: ./Attendance_API
 
     container_name: attendance-api
 
@@ -177,7 +185,8 @@ services:
       start_period: 40s
 
   notification-api:
-    image: 478mkharb/otms-notification-api:latest
+    build:
+      context: ./Notification
 
     container_name: notification-api
 
@@ -217,7 +226,8 @@ services:
       start_period: 30s
 
   scylla-sync:
-    image: 478mkharb/otms-scylla-sync:latest
+    build:
+      context: ./Scylla_Sync
 
     container_name: scylla-sync
 
@@ -251,7 +261,8 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: 478mkharb/otms-frontend:latest
+    build:
+      context: ./Frontend
 
     container_name: frontend
 
