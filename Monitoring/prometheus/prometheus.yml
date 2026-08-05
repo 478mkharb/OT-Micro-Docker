@@ -1,0 +1,77 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+rule_files:
+  - alerts.yml
+  
+scrape_configs:
+
+  # Prometheus
+  - job_name: "prometheus"
+    static_configs:
+      - targets:
+          - prometheus:9090
+
+  # Node Exporter
+  - job_name: "node-exporter"
+    static_configs:
+      - targets:
+          - node-exporter:9100
+
+  # Postgres Exporter
+  - job_name: "postgres-exporter"
+    static_configs:
+      - targets:
+          - postgres-exporter:9187
+
+  # Redis Exporter
+  - job_name: "redis-exporter"
+    static_configs:
+      - targets:
+          - redis-exporter:9121
+
+  # Elasticsearch Exporter
+  - job_name: "elasticsearch-exporter"
+    static_configs:
+      - targets:
+          - elasticsearch-exporter:9114
+
+  # ScyllaDB
+  - job_name: "scylladb"
+    static_configs:
+      - targets:
+          - scylladb:9180
+
+  # Employee API
+  - job_name: "employee-api"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - employee-api:8080
+
+  # Attendance API
+  - job_name: "attendance-api"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - attendance-api:8081
+
+  # Salary API
+  - job_name: "salary-api"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - salary-api:8082
+
+  # Notification API
+  - job_name: "notification-api"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - notification-api:8085

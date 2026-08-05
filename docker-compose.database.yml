@@ -103,3 +103,63 @@ services:
       interval: 20s
       timeout: 10s
       retries: 10
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+
+    container_name: postgres-exporter
+
+    restart: unless-stopped
+
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:password@postgres:5432/attendance_db?sslmode=disable"
+
+    ports:
+      - "9187:9187"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.69.0
+
+    container_name: redis-exporter
+
+    restart: unless-stopped
+
+    environment:
+      REDIS_ADDR: redis://redis:6379
+
+    ports:
+      - "9121:9121"
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+      
+  elasticsearch-exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.9.0
+
+    container_name: elasticsearch-exporter
+
+    restart: unless-stopped
+
+    command:
+      - '--es.uri=http://elasticsearch:9200'
+
+    ports:
+      - "9114:9114"
+
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+    networks:
+      - otms-network

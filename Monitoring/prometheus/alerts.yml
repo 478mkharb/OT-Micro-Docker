@@ -1,0 +1,126 @@
+groups:
+  - name: otms-alerts
+
+    rules:
+
+    # =========================
+    # APPLICATION ALERTS
+    # =========================
+
+      - alert: EmployeeAPIDown
+        expr: up{job="employee-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Employee API Down"
+          description: "Employee API has been unreachable for more than 1 minute."
+
+      - alert: AttendanceAPIDown
+        expr: up{job="attendance-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Attendance API Down"
+          description: "Attendance API has been unreachable for more than 1 minute."
+
+      - alert: SalaryAPIDown
+        expr: up{job="salary-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Salary API Down"
+          description: "Salary API has been unreachable for more than 1 minute."
+
+      - alert: NotificationAPIDown
+        expr: up{job="notification-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Notification API Down"
+          description: "Notification API has been unreachable for more than 1 minute."
+
+
+    # =========================
+    # DATABASE ALERTS
+    # =========================
+
+      - alert: PostgreSQLDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL Down"
+          description: "PostgreSQL exporter is unreachable."
+
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis Down"
+          description: "Redis exporter is unreachable."
+
+      - alert: ElasticsearchDown
+        expr: up{job="elasticsearch-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Elasticsearch Down"
+          description: "Elasticsearch exporter is unreachable."
+
+      - alert: ScyllaDBDown
+        expr: up{job="scylladb"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ScyllaDB Down"
+          description: "ScyllaDB exporter is unreachable."
+
+
+    # =========================
+    # INFRASTRUCTURE ALERTS
+    # =========================
+
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node Exporter Down"
+          description: "Node Exporter is unreachable."
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU Usage"
+          description: "CPU utilization is above 80%."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory Usage"
+          description: "Memory utilization is above 85%."
+
+      - alert: HighDiskUsage
+        expr: (100 - ((node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} * 100) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Disk Usage"
+          description: "Disk utilization is above 90%."
