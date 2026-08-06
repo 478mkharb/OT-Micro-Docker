@@ -275,4 +275,4 @@ services:
 
 networks:
   otms-network:
-    external: true
+    driver: bridge
