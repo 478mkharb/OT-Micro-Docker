@@ -22,11 +22,21 @@ from elasticsearch import Elasticsearch
 from flask import Flask, jsonify, request
 from flasgger import Swagger
 from prometheus_flask_exporter import PrometheusMetrics
+from telemetry.telemetry import init_tracing
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from middleware.logging import register_logging
+from utils.log_encoder import CustomJsonFormatter
 
 API_VERSION = "1.0"
 CONFIG_FILE = os.environ.get("CONFIG_FILE", "config.yaml")
 
 app = Flask(__name__)
+
+init_tracing()
+
+FlaskInstrumentor().instrument_app(app)
+
+register_logging(app)
 
 swagger_template = {
     "swagger": "2.0",
@@ -45,9 +55,9 @@ Swagger(app, template=swagger_template)
 
 PrometheusMetrics(app)
 
-FORMATTER = logging.Formatter(
-    "%(asctime)s %(levelname)s %(name)s %(message)s"
-)
+
+
+FORMATTER = CustomJsonFormatter()
 
 
 def get_logger():

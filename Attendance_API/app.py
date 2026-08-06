@@ -9,8 +9,16 @@ from router.attendance import route as create_record
 from router.cache import cache
 from utils.json_encoder import DataclassJSONEncoder
 from client.redis.redis_conn import get_caching_data
+from telemetry.telemetry import init_tracing
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from middleware.logging import register_logging
 
 app = Flask(__name__)
+
+init_tracing()
+FlaskInstrumentor().instrument_app(app)
+
+register_logging(app)
 
 swagger = Swagger(app)
 

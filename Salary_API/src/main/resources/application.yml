@@ -1,13 +1,13 @@
 spring:
   cassandra:
-    keyspace-name: ${SCYLLA_KEYSPACE:employee_db}
-    contact-points: ${SCYLLA_HOST:localhost}
+    contact-points: ${SCYLLA_HOST:scylladb}
     port: ${SCYLLA_PORT:9042}
+    keyspace-name: ${SCYLLA_KEYSPACE:employee_db}
     local-datacenter: ${SCYLLA_DATACENTER:datacenter1}
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
@@ -21,12 +21,8 @@ management:
       exposure:
         include:
           - health
-          - prometheus
           - metrics
-
-  health:
-    cassandra:
-      enabled: true
+          - prometheus
 
   endpoint:
     health:
@@ -38,9 +34,19 @@ management:
     prometheus:
       enabled: true
 
+  health:
+    cassandra:
+      enabled: true
+
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
 logging:
   level:
-    org.springframework.web: DEBUG
+    root: INFO
+    org.springframework.web: INFO
 
 springdoc:
   swagger-ui:

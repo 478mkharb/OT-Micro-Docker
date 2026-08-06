@@ -7,14 +7,18 @@ WORKDIR /workspace
 
 # Install required packages
 RUN apt-get update && \
-    apt-get install -y wget make jq
+    apt-get install -y --no-install-recommends \
+        wget \
+        make \
+        jq \
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy project files
 COPY pom.xml .
 COPY src/ src/
 COPY migration/ migration/
 COPY Makefile .
-
 
 # Build application
 RUN mvn clean package -DskipTests
@@ -23,6 +27,10 @@ RUN mvn clean package -DskipTests
 RUN wget -qO- \
 https://github.com/golang-migrate/migrate/releases/latest/download/migrate.linux-amd64.tar.gz \
 | tar -xz -C /tmp
+
+# Download OpenTelemetry Java Agent
+RUN wget -O /tmp/opentelemetry-javaagent.jar \
+https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.20.1/opentelemetry-javaagent.jar
 
 # ==================================================
 # Stage 2 - Runtime
@@ -45,13 +53,21 @@ RUN apk add --no-cache \
     netcat-openbsd \
     ca-certificates
 
-# Application
+# Copy application
 COPY --from=builder /workspace/target/*.jar /app/salary.jar
 
+# Copy OpenTelemetry Java Agent
+COPY --from=builder /tmp/opentelemetry-javaagent.jar /otel/opentelemetry-javaagent.jar
 
-# Startup script
-
+# OpenTelemetry Configuration
+ENV OTEL_SERVICE_NAME=salary-api \
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 \
+    OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
+    OTEL_TRACES_EXPORTER=otlp \
+    OTEL_METRICS_EXPORTER=none \
+    OTEL_LOGS_EXPORTER=none \
+    OTEL_RESOURCE_ATTRIBUTES=service.name=salary-api
 
 EXPOSE 8082
 
-ENTRYPOINT ["java","-jar","/app/salary.jar"]
+ENTRYPOINT ["java","-javaagent:/otel/opentelemetry-javaagent.jar","-jar","/app/salary.jar"]

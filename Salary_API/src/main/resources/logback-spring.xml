@@ -1,9 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <configuration>
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+
+            <providers>
+
+                <timestamp/>
+
+                <logLevel/>
+
+                <loggerName/>
+
+                <threadName/>
+
+                <message/>
+
+                <mdc/>
+
+                <pattern>
+                    <pattern>
+                        {
+                          "service":"salary-api"
+                        }
+                    </pattern>
+                </pattern>
+
+                <stackTrace/>
+
+            </providers>
+
+        </encoder>
+
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="console" />
+        <appender-ref ref="CONSOLE"/>
     </root>
+
 </configuration>

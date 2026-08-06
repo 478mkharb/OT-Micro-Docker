@@ -1,47 +1,42 @@
 package middlewares
 
 import (
-	"time"
+    "time"
 
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
+    "github.com/gin-gonic/gin"
+    log "github.com/sirupsen/logrus"
+
+    "go.opentelemetry.io/otel/trace"
 )
 
-// LoggingMiddleware is a method to set formatter of logrus
 func LoggingMiddleware() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		// Starting time request
-		startTime := time.Now()
+    return func(ctx *gin.Context) {
 
-		// Processing request
-		ctx.Next()
+        startTime := time.Now()
 
-		// End Time request
-		endTime := time.Now()
+        ctx.Next()
 
-		// execution time
-		latencyTime := endTime.Sub(startTime)
+        latencyTime := time.Since(startTime)
 
-		// Request method
-		reqMethod := ctx.Request.Method
+        span := trace.SpanFromContext(ctx.Request.Context())
+        spanCtx := span.SpanContext()
 
-		// Request route
-		reqUri := ctx.Request.RequestURI
+        traceID := ""
+        spanID := ""
 
-		// status code
-		statusCode := ctx.Writer.Status()
+        if spanCtx.IsValid() {
+            traceID = spanCtx.TraceID().String()
+            spanID = spanCtx.SpanID().String()
+        }
 
-		// Request IP
-		clientIP := ctx.ClientIP()
-
-		log.WithFields(log.Fields{
-			"http_method": reqMethod,
-			"request_uri": reqUri,
-			"status_code": statusCode,
-			"latency":     latencyTime,
-			"client_ip":   clientIP,
-		}).Info("HTTP REQUEST STATUS")
-
-		ctx.Next()
-	}
+        log.WithFields(log.Fields{
+            "trace_id":    traceID,
+            "span_id":     spanID,
+            "http_method": ctx.Request.Method,
+            "request_uri": ctx.Request.RequestURI,
+            "status_code": ctx.Writer.Status(),
+            "latency":     latencyTime,
+            "client_ip":   ctx.ClientIP(),
+        }).Info("HTTP REQUEST STATUS")
+    }
 }

@@ -1,7 +1,7 @@
 # ==================================================
 # Stage 1 - Build Employee API
 # ==================================================
-FROM golang:1.22.5 AS builder
+FROM golang:1.25.1 AS builder
 
 WORKDIR /go/src/employee-api
 

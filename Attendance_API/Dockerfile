@@ -82,4 +82,4 @@ COPY --from=builder /app /app
 
 EXPOSE 8081
 
-CMD ["gunicorn", "app:app", "--log-config", "log.conf", "--bind", "0.0.0.0:8081"]
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8081", "--log-config", "log.conf", "--access-logfile", "/dev/null"]

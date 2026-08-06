@@ -1,0 +1,18 @@
+discovery:
+  instrument:
+    - name: employee-api
+      open_ports: "8080"
+
+otel_traces_export:
+  endpoint: http://otel-collector:4318
+  protocol: http/protobuf
+
+otel_metrics_export:
+  endpoint: http://otel-collector:4318
+  protocol: http/protobuf
+
+attributes:
+  kubernetes:
+    enable: false
+
+log_level: DEBUG
