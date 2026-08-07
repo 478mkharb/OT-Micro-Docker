@@ -37,11 +37,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "cqlsh localhost 9042 -e 'DESCRIBE KEYSPACES' >/dev/null 2>&1 || exit 1"
-        ]
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9042"]
       interval: 10s
       timeout: 5s
       retries: 20
