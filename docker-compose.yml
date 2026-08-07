@@ -7,7 +7,7 @@ services:
 
     depends_on:
       scylladb:
-        condition: service_started
+        condition: service_healthy
 
     networks:
       - otms-network

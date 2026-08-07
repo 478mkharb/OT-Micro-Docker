@@ -8,16 +8,22 @@ echo "========================================="
 
 echo "Waiting for ScyllaDB..."
 
-until cqlsh scylladb 9042 -e "DESCRIBE KEYSPACES" >/dev/null 2>&1
+until cqlsh scylladb 9042 \
+    -u scylladb \
+    -p password \
+    -e "DESCRIBE KEYSPACES" >/dev/null 2>&1
 do
-    echo "ScyllaDB is unavailable. Retrying in 5 seconds..."
-    sleep 5
+    echo "ScyllaDB not ready. Retrying..."
+    sleep 2
 done
 
 echo "ScyllaDB is available."
 
-echo "Creating employee_db keyspace..."
+echo "Creating keyspace..."
 
-cqlsh scylladb 9042 -f /init.cql
+cqlsh scylladb 9042 \
+    -u scylladb \
+    -p password \
+    -f /init.cql
 
-echo "ScyllaDB initialization completed successfully."
+echo "Initialization completed successfully."

@@ -13,9 +13,18 @@ services:
 
   scylladb:
     image: 478mkharb/otms-scylladb:latest
+
     container_name: scylladb
 
-    command: --smp 1 --memory 1G --overprovisioned 1 --developer-mode 1
+    command:
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --overprovisioned
+      - "1"
+      - --developer-mode
+      - "1"
 
     ports:
       - "9042:9042"
@@ -27,6 +36,17 @@ services:
       - otms-network
 
     restart: unless-stopped
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "cqlsh localhost 9042 -u scylladb -p password -e 'DESCRIBE KEYSPACES' >/dev/null 2>&1 || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
 
   postgres:
     image: 478mkharb/otms-postgres:latest
