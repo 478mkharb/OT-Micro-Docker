@@ -2,7 +2,8 @@
 
 <configuration>
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="CONSOLE"
+              class="ch.qos.logback.core.ConsoleAppender">
 
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
 
@@ -18,12 +19,12 @@
 
                 <message/>
 
-                <mdc/>
-
                 <pattern>
                     <pattern>
                         {
-                          "service":"salary-api"
+                          "service_name":"salary-api",
+                          "trace_id":"%X{trace_id}",
+                          "span_id":"%X{span_id}"
                         }
                     </pattern>
                 </pattern>

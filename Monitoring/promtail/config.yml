@@ -35,22 +35,30 @@ scrape_configs:
     pipeline_stages:
       - json:
           expressions:
-            timestamp:
-            levelname:
-            message:
-            service:
-            trace_id:
-            span_id:
-            http_method:
-            request_uri:
-            status_code:
-            client_ip:
-            latency_ms:
+            timestamp: timestamp
+            time: time
+            level: level
+            severity: severity
+            message: msg
+
+            service_name: '"service.name"'
+
+            trace_id: trace_id
+            span_id: span_id
+
+            http_method: '"http.method"'
+            http_route: '"http.route"'
+            http_target: '"http.target"'
+            http_status_code: '"http.status_code"'
+
+            client_address: '"client.address"'
+
+            latency_ns: latency_ns
 
       - labels:
-          service:
-          levelname:
+          service_name:
+          level:
 
       - timestamp:
-          source: timestamp
-          format: Unix
+          source: time
+          format: RFC3339

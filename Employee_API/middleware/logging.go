@@ -1,42 +1,54 @@
 package middlewares
 
 import (
-    "time"
+	"os"
+	"time"
 
-    "github.com/gin-gonic/gin"
-    log "github.com/sirupsen/logrus"
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 
-    "go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func LoggingMiddleware() gin.HandlerFunc {
-    return func(ctx *gin.Context) {
 
-        startTime := time.Now()
+	// Read service name from environment variable
+	serviceName := os.Getenv("OTEL_SERVICE_NAME")
+	if serviceName == "" {
+		serviceName = "employee-api"
+	}
 
-        ctx.Next()
+	return func(ctx *gin.Context) {
 
-        latencyTime := time.Since(startTime)
+		startTime := time.Now()
 
-        span := trace.SpanFromContext(ctx.Request.Context())
-        spanCtx := span.SpanContext()
+		ctx.Next()
 
-        traceID := ""
-        spanID := ""
+		latency := time.Since(startTime)
 
-        if spanCtx.IsValid() {
-            traceID = spanCtx.TraceID().String()
-            spanID = spanCtx.SpanID().String()
-        }
+		span := trace.SpanFromContext(ctx.Request.Context())
+		spanCtx := span.SpanContext()
 
-        log.WithFields(log.Fields{
-            "trace_id":    traceID,
-            "span_id":     spanID,
-            "http_method": ctx.Request.Method,
-            "request_uri": ctx.Request.RequestURI,
-            "status_code": ctx.Writer.Status(),
-            "latency":     latencyTime,
-            "client_ip":   ctx.ClientIP(),
-        }).Info("HTTP REQUEST STATUS")
-    }
+		traceID := ""
+		spanID := ""
+
+		if spanCtx.IsValid() {
+			traceID = spanCtx.TraceID().String()
+			spanID = spanCtx.SpanID().String()
+		}
+
+		log.WithFields(log.Fields{
+			"timestamp":        time.Now().UTC().Format(time.RFC3339Nano),
+			"severity":         "INFO",
+			"service.name":     serviceName,
+			"trace_id":         traceID,
+			"span_id":          spanID,
+			"http.method":      ctx.Request.Method,
+			"http.route":       ctx.FullPath(),
+			"http.target":      ctx.Request.RequestURI,
+			"http.status_code": ctx.Writer.Status(),
+			"client.address":   ctx.ClientIP(),
+			"latency_ns":       latency.Nanoseconds(),
+		}).Info("HTTP REQUEST STATUS")
+	}
 }

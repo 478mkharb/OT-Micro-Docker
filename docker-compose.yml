@@ -77,6 +77,11 @@ services:
 
       GIN_MODE: release
 
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: employee-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+
     depends_on:
       scylla-migration:
         condition: service_completed_successfully
@@ -116,6 +121,17 @@ services:
       REDIS_PASSWORD: ""
 
       SPRING_PROFILES_ACTIVE: docker
+      # OpenTelemetry
+
+      OTEL_SERVICE_NAME: salary-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+      OTEL_RESOURCE_ATTRIBUTES: service.name=salary-api
+
+      OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
 
     depends_on:
       scylla-migration:
@@ -156,6 +172,10 @@ services:
       REDIS_PASSWORD: ""
 
       SERVER_PORT: 8081
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: attendance-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
 
     depends_on:
       attendance-migration:
@@ -199,6 +219,10 @@ services:
       ELASTIC_USERNAME: ""
       ELASTIC_PASSWORD: ""
       ELASTIC_INDEX: employee_index
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: notification-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
 
     depends_on:
       elasticsearch:

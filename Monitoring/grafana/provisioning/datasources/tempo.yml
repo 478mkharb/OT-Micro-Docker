@@ -3,15 +3,24 @@ apiVersion: 1
 datasources:
   - name: Tempo
     uid: tempo
+    version: 2
     type: tempo
     access: proxy
     url: http://tempo:3200
+    editable: true
 
     jsonData:
       httpMethod: GET
 
       tracesToLogsV2:
         datasourceUid: loki
-
         filterByTraceID: true
-        filterBySpanID: true
+        filterBySpanID: false
+        spanStartTimeShift: "-5m"
+        spanEndTimeShift: "5m"
+
+        tags:
+          - key: service_name
+            value: service.name
+
+        customQuery: false
