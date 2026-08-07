@@ -37,12 +37,16 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "nc -z 127.0.0.1 9042"]
+      test:
+        [
+          "CMD-SHELL",
+          "cqlsh $(hostname -i) 9042 -e 'DESCRIBE KEYSPACES' >/dev/null 2>&1 || exit 1"
+        ]
       interval: 10s
       timeout: 5s
       retries: 20
-      start_period: 90s
-
+      start_period: 120s
+  
   postgres:
     image: 478mkharb/otms-postgres:latest
     container_name: postgres
