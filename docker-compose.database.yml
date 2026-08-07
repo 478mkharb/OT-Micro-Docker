@@ -20,7 +20,7 @@ services:
       - --smp
       - "1"
       - --memory
-      - 1G
+      - 256M
       - --overprovisioned
       - "1"
       - --developer-mode
