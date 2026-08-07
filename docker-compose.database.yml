@@ -13,14 +13,13 @@ services:
 
   scylladb:
     image: 478mkharb/otms-scylladb:latest
-
     container_name: scylladb
 
     command:
       - --smp
       - "1"
       - --memory
-      - 256M
+      - 512M
       - --overprovisioned
       - "1"
       - --developer-mode
@@ -41,12 +40,12 @@ services:
       test:
         [
           "CMD-SHELL",
-          "cqlsh localhost 9042 -u scylladb -p password -e 'DESCRIBE KEYSPACES' >/dev/null 2>&1 || exit 1"
+          "cqlsh localhost 9042 -e 'DESCRIBE KEYSPACES' >/dev/null 2>&1 || exit 1"
         ]
       interval: 10s
       timeout: 5s
       retries: 20
-      start_period: 60s
+      start_period: 90s
 
   postgres:
     image: 478mkharb/otms-postgres:latest
@@ -63,6 +62,8 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+    shm_size: 128m
+
     networks:
       - otms-network
 
@@ -78,7 +79,14 @@ services:
     image: 478mkharb/otms-redis:latest
     container_name: redis
 
-    command: redis-server --appendonly yes
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - allkeys-lru
 
     ports:
       - "6379:6379"
@@ -104,7 +112,7 @@ services:
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
-      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      ES_JAVA_OPTS: "-Xms256m -Xmx256m"
 
     ports:
       - "9200:9200"
@@ -123,13 +131,11 @@ services:
       interval: 20s
       timeout: 10s
       retries: 10
+      start_period: 40s
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.17.1
-
     container_name: postgres-exporter
-
-    restart: unless-stopped
 
     environment:
       DATA_SOURCE_NAME: "postgresql://postgres:password@postgres:5432/attendance_db?sslmode=disable"
@@ -144,12 +150,11 @@ services:
     networks:
       - otms-network
 
+    restart: unless-stopped
+
   redis-exporter:
     image: oliver006/redis_exporter:v1.69.0
-
     container_name: redis-exporter
-
-    restart: unless-stopped
 
     environment:
       REDIS_ADDR: redis://redis:6379
@@ -163,16 +168,15 @@ services:
 
     networks:
       - otms-network
-      
-  elasticsearch-exporter:
-    image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.9.0
-
-    container_name: elasticsearch-exporter
 
     restart: unless-stopped
 
+  elasticsearch-exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.9.0
+    container_name: elasticsearch-exporter
+
     command:
-      - '--es.uri=http://elasticsearch:9200'
+      - --es.uri=http://elasticsearch:9200
 
     ports:
       - "9114:9114"
@@ -183,3 +187,5 @@ services:
 
     networks:
       - otms-network
+
+    restart: unless-stopped
