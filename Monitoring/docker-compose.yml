@@ -21,7 +21,7 @@ services:
       - default
 
   grafana:
-    image: grafana/grafana:12.2.0
+    image: grafana/grafana:13.0
     container_name: grafana
     restart: unless-stopped
 

@@ -41,7 +41,7 @@ scrape_configs:
             severity: severity
             message: msg
 
-            service_name: '"service.name"'
+            service: service
 
             trace_id: trace_id
             span_id: span_id
@@ -57,6 +57,7 @@ scrape_configs:
 
       - labels:
           service_name:
+          service:
           level:
 
       - timestamp:
