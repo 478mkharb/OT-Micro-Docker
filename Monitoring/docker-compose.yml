@@ -78,6 +78,23 @@ services:
     networks:
       - default
 
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.4.2
+
+    container_name: nginx-exporter
+
+    command:
+      - --nginx.scrape-uri=http://frontend/nginx_status
+
+    ports:
+      - "9113:9113"
+
+
+    restart: unless-stopped
+
+    networks:
+      - default
+
   loki:
     image: grafana/loki:3.5.4
     container_name: loki

@@ -18,6 +18,12 @@ scrape_configs:
       - targets:
           - prometheus:9090
 
+  # NGINX Exporter
+  - job_name: "frontend"
+    static_configs:
+      - targets:
+          - nginx-exporter:9113
+          
   # Node Exporter
   - job_name: "node-exporter"
     static_configs:

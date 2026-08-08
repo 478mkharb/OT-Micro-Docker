@@ -33,33 +33,59 @@ scrape_configs:
         target_label: container_id
 
     pipeline_stages:
+
+      # Unwrap Docker log format
+      - docker: {}
+
+      # Parse your application JSON
       - json:
           expressions:
+
+            # Common
             timestamp: timestamp
             time: time
             level: level
             severity: severity
-            message: msg
-
+            message: message
             service: service
 
             trace_id: trace_id
             span_id: span_id
 
+            # OpenTelemetry
             http_method: '"http.method"'
             http_route: '"http.route"'
             http_target: '"http.target"'
             http_status_code: '"http.status_code"'
-
             client_address: '"client.address"'
-
             latency_ns: latency_ns
 
+            # NGINX
+            request_method: request_method
+            request_uri: request_uri
+            request: request
+            status: status
+            bytes_sent: bytes_sent
+            request_time: request_time
+            upstream_addr: upstream_addr
+            upstream_status: upstream_status
+            upstream_response_time: upstream_response_time
+            referer: referer
+            user_agent: user_agent
+            traceparent: traceparent
+            tracestate: tracestate
+            baggage: baggage
+
       - labels:
-          service_name:
           service:
           level:
 
       - timestamp:
           source: time
           format: RFC3339
+          action_on_failure: skip
+
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+          action_on_failure: skip
