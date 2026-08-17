@@ -1,0 +1,475 @@
+services:
+
+  scylla-init:
+    image: 478mkharb/otms-scylla-init:latest
+
+    container_name: scylla-init
+
+    depends_on:
+      scylladb:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: "no"
+  
+  scylla-migration:
+    image: 478mkharb/otms-scylla-migration:latest
+
+    container_name: scylla-migration
+
+    environment:
+      SCYLLA_HOST: scylladb
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylladb
+      SCYLLA_PASSWORD: password
+      SCYLLA_KEYSPACE: employee_db
+
+    depends_on:
+      scylla-init:
+        condition: service_completed_successfully
+
+    networks:
+      - otms-network
+
+    restart: "no"
+
+  attendance-migration:
+    image: 478mkharb/otms-attendance-migration:latest
+
+    container_name: attendance-migration
+
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: attendance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: "no"
+
+  employee-api:
+    image: 478mkharb/otms-employee-api:latest
+
+    container_name: employee-api
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      SCYLLA_HOST: scylladb
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylladb
+      SCYLLA_PASSWORD: password
+      SCYLLA_KEYSPACE: employee_db
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+      GIN_MODE: release
+
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: employee-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+
+    depends_on:
+      scylla-migration:
+        condition: service_completed_successfully
+
+      redis:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/v1/employee/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  salary-api:
+    image: 478mkharb/otms-salary-api:latest
+
+    container_name: salary-api
+
+    ports:
+      - "8082:8082"
+
+    environment:
+      SCYLLA_HOST: scylladb
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylladb
+      SCYLLA_PASSWORD: password
+      SCYLLA_KEYSPACE: employee_db
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+
+      SPRING_PROFILES_ACTIVE: docker
+      # OpenTelemetry
+
+      OTEL_SERVICE_NAME: salary-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+      OTEL_RESOURCE_ATTRIBUTES: service.name=salary-api
+
+      OTEL_INSTRUMENTATION_LOGBACK_MDC_ENABLED: "true"
+
+    depends_on:
+      scylla-migration:
+        condition: service_completed_successfully
+
+      redis:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  attendance-api:
+    image: 478mkharb/otms-attendance-api:latest
+
+    container_name: attendance-api
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: attendance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+
+      SERVER_PORT: 8081
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: attendance-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+
+    depends_on:
+      attendance-migration:
+        condition: service_completed_successfully
+
+      redis:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/v1/attendance/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  notification-api:
+    image: 478mkharb/otms-notification-api:latest
+
+    container_name: notification-api
+
+    ports:
+      - "8085:8085"
+
+    environment:
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8085
+
+      SMTP_FROM: jenkinsotms@gmail.com
+      SMTP_USERNAME: jenkinsotms@gmail.com
+      SMTP_PASSWORD: zvdftllukvincrgj
+      SMTP_SERVER: smtp.gmail.com
+      SMTP_PORT: 587
+
+      ELASTIC_HOST: elasticsearch
+      ELASTIC_PORT: 9200
+      ELASTIC_USERNAME: ""
+      ELASTIC_PASSWORD: ""
+      ELASTIC_INDEX: employee_index
+
+      SCYLLA_HOST: scylladb
+      SCYLLA_PORT: 9042
+      SCYLLA_USERNAME: scylladb
+      SCYLLA_PASSWORD: password
+      SCYLLA_KEYSPACE: employee_db
+      SCYLLA_SYNC_INTERVAL: 5
+
+      # OpenTelemetry
+      OTEL_SERVICE_NAME: notification-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+
+    depends_on:
+      scylla-migration:
+        condition: service_completed_successfully
+
+      elasticsearch:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/api/v1/notification/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+
+  frontend:
+    image: 478mkharb/otms-frontend:latest
+
+    container_name: frontend
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      employee-api:
+        condition: service_healthy
+      salary-api:
+        condition: service_healthy
+      attendance-api:
+        condition: service_healthy
+      notification-api:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+networks:
+  otms-network:
+    driver: bridge
+
+
+---
+
+networks:
+  otms-network:
+    name: otms-network
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  scylladb-data:
+  elasticsearch-data:
+
+services:
+
+  scylladb:
+    image: 478mkharb/otms-scylladb:latest
+    container_name: scylladb
+
+    command:
+      - --smp
+      - "1"
+      - --memory
+      - 512M
+      - --overprovisioned
+      - "1"
+      - --developer-mode
+      - "1"
+
+    ports:
+      - "9042:9042"
+
+    volumes:
+      - scylladb-data:/var/lib/scylla
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "cqlsh $(hostname -i) 9042 -e 'DESCRIBE KEYSPACES' >/dev/null 2>&1 || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+  
+  postgres:
+    image: 478mkharb/otms-postgres:latest
+    container_name: postgres
+
+    environment:
+      POSTGRES_DB: attendance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    shm_size: 128m
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d attendance_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: 478mkharb/otms-redis:latest
+    container_name: redis
+
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 64mb
+      - --maxmemory-policy
+      - allkeys-lru
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis-data:/data
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticsearch:
+    image: 478mkharb/otms-elasticsearch:latest
+    container_name: elasticsearch
+
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms256m -Xmx256m"
+
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200 >/dev/null || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    container_name: postgres-exporter
+
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:password@postgres:5432/attendance_db?sslmode=disable"
+
+    ports:
+      - "9187:9187"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.69.0
+    container_name: redis-exporter
+
+    environment:
+      REDIS_ADDR: redis://redis:6379
+
+    ports:
+      - "9121:9121"
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped
+
+  elasticsearch-exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.9.0
+    container_name: elasticsearch-exporter
+
+    command:
+      - --es.uri=http://elasticsearch:9200
+
+    ports:
+      - "9114:9114"
+
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+    networks:
+      - otms-network
+
+    restart: unless-stopped

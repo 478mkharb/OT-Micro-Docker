@@ -1,0 +1,7 @@
+/home/ubuntu/Salary_API/src/main/java/com/opstree/microservice/salary/repository/EmployeeRepository.java
+/home/ubuntu/Salary_API/src/main/java/com/opstree/microservice/salary/config/OpenAPIConfig.java
+/home/ubuntu/Salary_API/src/main/java/com/opstree/microservice/salary/model/Employee.java
+/home/ubuntu/Salary_API/src/main/java/com/opstree/microservice/salary/contollers/SpringDataController.java
+/home/ubuntu/Salary_API/src/main/java/com/opstree/microservice/salary/model/Message.java
+/home/ubuntu/Salary_API/src/main/java/com/opstree/microservice/salary/service/SpringDataSalaryService.java
+/home/ubuntu/Salary_API/src/main/java/com/opstree/microservice/salary/SalaryApplication.java

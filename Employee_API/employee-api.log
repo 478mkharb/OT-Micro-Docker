@@ -1,0 +1,27 @@
+nohup: ignoring input
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /metrics                  --> github.com/penglongli/gin-metrics/ginmetrics.(*Monitor).Use.func1 (2 handlers)
+[GIN-debug] GET    /api/v1/employee/health   --> employee-api/api.HealthCheckAPI (4 handlers)
+[GIN-debug] GET    /api/v1/employee/health/detail --> employee-api/api.DetailedHealthCheckAPI (4 handlers)
+[GIN-debug] POST   /api/v1/employee/create   --> employee-api/api.CreateEmployeeData (4 handlers)
+[GIN-debug] GET    /api/v1/employee/search   --> employee-api/api.ReadEmployeeData (4 handlers)
+[GIN-debug] GET    /api/v1/employee/search/all --> employee-api/api.ReadCompleteEmployeesData (4 handlers)
+[GIN-debug] GET    /api/v1/employee/search/location --> employee-api/api.ReadEmployeesLocation (4 handlers)
+[GIN-debug] GET    /api/v1/employee/search/designation --> employee-api/api.ReadEmployeesDesignation (4 handlers)
+[GIN-debug] GET    /swagger/*any             --> github.com/swaggo/gin-swagger.CustomWrapHandler.func1 (4 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+{"client_ip":"204.76.203.206","http_method":"GET","latency":1291,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/","status_code":404,"time":"2026-04-29T04:28:56Z"}
+{"client_ip":"204.76.203.206","http_method":"GET","latency":1576,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/","status_code":404,"time":"2026-04-29T04:36:47Z"}
+{"client_ip":"204.76.203.206","http_method":"GET","latency":1400,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/","status_code":404,"time":"2026-04-29T04:50:10Z"}
+{"client_ip":"204.76.203.206","http_method":"GET","latency":1578,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/","status_code":404,"time":"2026-04-29T04:57:07Z"}
+{"client_ip":"204.76.203.206","http_method":"GET","latency":1466,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/","status_code":404,"time":"2026-04-29T05:07:43Z"}
+{"client_ip":"176.65.139.177","http_method":"GET","latency":1795,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/login","status_code":404,"time":"2026-04-29T05:15:11Z"}
+{"client_ip":"204.76.203.206","http_method":"GET","latency":1433,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/","status_code":404,"time":"2026-04-29T05:17:20Z"}
+{"client_ip":"204.76.203.206","http_method":"GET","latency":1529,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/","status_code":404,"time":"2026-04-29T05:35:02Z"}
+{"client_ip":"175.111.182.65","http_method":"GET","latency":1417,"level":"info","msg":"HTTP REQUEST STATUS","request_uri":"/","status_code":404,"time":"2026-04-29T05:40:26Z"}
+signal: killed
